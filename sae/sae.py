@@ -10,8 +10,8 @@ from jaxtyping import Float, Int64
 from safetensors.torch import load_model, save_model
 from torch import nn, Tensor
 
-from .config import SaeConfig
-from .kernels import TritonDecoder
+from sae.config import SaeConfig
+from sae.kernels import TritonDecoder
 
 
 class EncoderOutput(NamedTuple):

@@ -55,9 +55,14 @@ class TrainConfig(Serializable):
     save_every: int = 1000
     """Save SAEs every `save_every` steps."""
 
+    n_batches: int | None = None 
+    """Number of training batches. If None, it is automatically chosen based on the number of tokens."""
+
     log_to_wandb: bool = True
     run_name: str | None = None
     wandb_log_frequency: int = 1
+    load_from_checkpoint: bool = False
+    load_from_hub_path: str | None = None
 
     def __post_init__(self):
         assert not (self.layers and self.layer_stride != 1), "Cannot specify both `layers` and `layer_stride`."

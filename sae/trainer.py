@@ -1,5 +1,7 @@
 from dataclasses import asdict
-from typing import Sized
+from typing import Sized, List, Dict
+import gc
+import os
 
 import torch
 import torch.distributed as dist
@@ -9,10 +11,23 @@ from torch.utils.data import DataLoader, Dataset
 from tqdm.auto import tqdm
 from transformers import get_linear_schedule_with_warmup, PreTrainedModel
 
-from .config import TrainConfig
-from .sae import Sae
-from .utils import geometric_median
+from sae.config import TrainConfig
+from sae.sae import Sae
+from sae.utils import geometric_median
 
+DEFAULT_CHECKPOINTS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "checkpoints")
+
+def print_cuda_memory():
+    """
+    Print the currently allocated CUDA memory in gigabytes.
+    """
+    allocated_memory = torch.cuda.memory_allocated()
+    print(f"CUDA memory allocated: {allocated_memory / 1e9:.2f} GB")
+
+def clear_memory():
+    for _ in range(3):
+        gc.collect()
+        torch.cuda.empty_cache()
 
 class SaeTrainer:
     def __init__(self, cfg: TrainConfig, dataset: Dataset, model: PreTrainedModel):
@@ -33,7 +48,29 @@ class SaeTrainer:
 
         device = model.device
         self.model = model
-        self.saes = nn.ModuleList([Sae(d_in, cfg.sae, device) for _ in range(N)])
+
+        if cfg.load_from_checkpoint and cfg.load_from_hub_path:
+            raise ValueError("Only one of load_from_checkpoint or load_from_hub_path can be set.")        
+        
+        self.pretrained_saes = True if (cfg.load_from_checkpoint or cfg.load_from_hub_path) else False
+
+        if cfg.load_from_checkpoint:
+            checkpoint_dir = self.cfg.run_name or DEFAULT_CHECKPOINTS_DIR
+            self.saes = nn.ModuleList([
+                Sae.load_from_disk(os.path.join(checkpoint_dir, f"layer_{layer}")).to(device)
+                for layer in cfg.layers
+            ])
+            print(f"Loaded SAEs from disk for layers: {cfg.layers}")
+        elif cfg.load_from_hub_path:
+            self.saes = nn.ModuleList([
+                Sae.load_from_hub(cfg.load_from_hub_path, layer=layer).to(device)
+                for layer in cfg.layers
+            ])
+            print(f"Loaded SAEs from hub for layers: {cfg.layers}")
+        else:
+            print(f"Initalizing {N} SAEs for layers: {cfg.layers}")
+            self.saes = nn.ModuleList([Sae(d_in, cfg.sae, device) for _ in range(N)])
+            print(f"Initialized new SAEs for layers: {cfg.layers}")
 
         d = d_in * cfg.sae.expansion_factor
         self.num_tokens_since_fired = torch.zeros(N, d, dtype=torch.long, device=device)
@@ -93,7 +130,7 @@ class SaeTrainer:
             batch_size=self.cfg.batch_size,
             shuffle=True,
         )
-        pbar = tqdm(dl, desc="Training", disable=not rank_zero)
+        pbar = tqdm(dl, desc="Training", disable=not rank_zero, total=self.cfg.n_batches if self.cfg.n_batches else len(dl))
 
         # This mask is zeroed out every training step
         did_fire = torch.zeros_like(self.num_tokens_since_fired, dtype=torch.bool)
@@ -129,8 +166,9 @@ class SaeTrainer:
                     # We could avoid this by "approximating" the geometric median
                     # across all ranks with the mean (median?) of the geometric medians
                     # on each rank. Not clear if that would hurt performance.
-                    median = geometric_median(self.maybe_all_cat(hiddens))
-                    raw.b_dec.data = median.to(raw.dtype)
+                    if not self.pretrained_saes:
+                        median = geometric_median(self.maybe_all_cat(hiddens))
+                        raw.b_dec.data = median.to(raw.dtype)
 
                     # Wrap the SAEs with Distributed Data Parallel. We have to do this
                     # after we set the decoder bias, otherwise DDP will not register
@@ -220,6 +258,10 @@ class SaeTrainer:
                 if (step + 1) % self.cfg.save_every == 0:
                     self.save()
 
+            if self.cfg.n_batches and i >= self.cfg.n_batches:
+                print(f"Reached {self.cfg.n_batches} batches, stopping training.")
+                break
+
         self.save()
         pbar.close()
 
@@ -300,8 +342,8 @@ class SaeTrainer:
                 assert isinstance(sae, Sae)
                 print(f"Saving layer {i}")
 
-                path = self.cfg.run_name or "checkpoints"
-                sae.save_to_disk(f"{path}/layer_{i}")
+                path = self.cfg.run_name or DEFAULT_CHECKPOINTS_DIR
+                sae.save_to_disk(os.path.join(f"{path}/layer_{i}"))
 
         # Barrier to ensure all ranks have saved before continuing
         if dist.is_initialized():
