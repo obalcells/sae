@@ -205,8 +205,8 @@ def main():
     )
 
     # Load the SAE
-    sae = Sae.load_from_disk(f"./checkpoints/layer_10/").to('cuda')
-    sae_dict = { "layer_10": sae }
+    sae = Sae.load_from_disk(f"./checkpoints/layer_12/").to('cuda')
+    sae_dict = { "layer_12": sae }
 
     sae_fwd_hooks, saw_fwd_pre_hooks = get_sae_hooks(
         model_block_modules=model.model.layers, sae_dict=sae_dict
@@ -214,7 +214,6 @@ def main():
 
     # Load and tokenize dataset
     dataset = load_dataset(dataset, split="train", trust_remote_code=True)
-    dataset = dataset.select(range(1000))
 
     tokenized = chunk_and_tokenize_chat_slow(
         dataset,

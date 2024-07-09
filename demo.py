@@ -44,8 +44,8 @@ def parse_args():
     # SaeConfig arguments
     parser.add_argument("--expansion_factor", type=int, default=32, help="Multiple of the input dimension to use as the SAE dimension")
     parser.add_argument("--normalize_decoder", action="store_true", default=True, help="Normalize the decoder weights to have unit norm")
-    parser.add_argument("--k", type=int, default=32, help="Number of nonzero features")
-    parser.add_argument("--signed", action="store_true", help="Whether to use signed features")
+    parser.add_argument("--k", type=int, default=192, help="Number of nonzero features")
+    parser.add_argument("--signed", action="store_true", default=False, help="Whether to use signed features")
 
     # Add new arguments for max_seq_len and model
     parser.add_argument("--max_seq_len", type=int, default=1024, help="Maximum sequence length for tokenization")
@@ -101,14 +101,15 @@ def main():
 
     # Load and tokenize dataset
     dataset = load_dataset(args.dataset, split="train", trust_remote_code=True)
-    tokenized = chunk_and_tokenize_chat_slow(
+    dataset = dataset.select(range(10000))
+    tokenized = chunk_and_tokenize(
         dataset,
         tokenizer,
-        instruction_key="instruction",
-        output_key="output",
-        max_seq_len=args.max_seq_len,
-        remove_bos_token=False,
-        batch_size=args.batch_size,
+        # instruction_key="instruction",
+        # output_key="output",
+        # max_seq_len=args.max_seq_len,
+        # remove_bos_token=False,
+        # batch_size=args.batch_size,
     )
     
     # Initialize trainer and start training
