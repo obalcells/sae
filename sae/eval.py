@@ -1,5 +1,18 @@
+# # %%
+# from IPython import get_ipython
+# ipython = get_ipython()
+# if ipython is not None:
+#     ipython.run_line_magic('load_ext', 'autoreload')
+#     ipython.run_line_magic('autoreload', '2')
+
+# # %%
+# import sys
+# sys.path.append("..")
+
+# %%
 import os
 import gc
+import json
 from typing import List, Dict
 import einops
 import torch
@@ -11,24 +24,25 @@ from datasets import Dataset
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from datasets import load_dataset
+import itertools
+# import weave
 
-from sae import Sae
+from sae.sparse_autoencoder import Sae
 from sae.hook_utils import add_hooks, get_sae_hooks
 from sae.utils import calculate_kl_divergence, calculate_ce_loss
 from sae.hook_utils import add_hooks, get_sae_hooks
-from sae.data import chunk_and_tokenize_chat_slow 
+from sae.data import chunk_and_tokenize, chunk_and_tokenize_chat, batch_iterator_chat, batch_iterator_text
+from sae.utils import format_prompts, apply_chat_template
 
-def evaluate_loss(model: AutoTokenizer, dataset: Dataset, fwd_hooks=[], fwd_pre_hooks=[], batch_size: int = 8, n_batches: int = 128, verbose: bool = True):
+# %%
+
+@torch.no_grad()
+def evaluate_loss(model: AutoTokenizer, batch_iterator, fwd_hooks=[], fwd_pre_hooks=[], n_batches: int = None, verbose: bool = True):
     accumulated_baseline_loss = torch.tensor(0, dtype=torch.float64, device=model.device)
     accumulated_hooked_sae_loss = torch.tensor(0, dtype=torch.float64, device=model.device)
     accumulated_n_tokens = torch.tensor(0, dtype=torch.int64, device=model.device)
 
-    dl = DataLoader(
-        dataset,
-        batch_size=batch_size,
-        shuffle=False,
-    )
-    pbar = tqdm(dl, desc="Loss Evaluation", disable=not verbose, total=n_batches if n_batches else len(dl))
+    pbar = tqdm(batch_iterator, desc="Loss Evaluation", disable=not verbose)
 
     for batch_idx, batch in enumerate(pbar):
         inputs = {k: v.to(model.device) for k, v in batch.items() if k != "loss_mask"}
@@ -54,7 +68,7 @@ def evaluate_loss(model: AutoTokenizer, dataset: Dataset, fwd_hooks=[], fwd_pre_
         gc.collect()
         torch.cuda.empty_cache()
 
-        if batch_idx >= n_batches:
+        if n_batches and batch_idx + 1 >= n_batches:
             break
 
     avg_baseline_loss = accumulated_baseline_loss / accumulated_n_tokens
@@ -68,18 +82,19 @@ def evaluate_loss(model: AutoTokenizer, dataset: Dataset, fwd_hooks=[], fwd_pre_
         print(f"Relative Difference: {relative_diff:.4%}")
         print(f"Number of Tokens: {accumulated_n_tokens.item():,}")
 
-    return avg_baseline_loss, avg_hooked_sae_loss, relative_diff, accumulated_n_tokens
+    return {
+        "avg_baseline_loss": avg_baseline_loss.item(),
+        "avg_hooked_sae_loss": avg_hooked_sae_loss.item(),
+        "relative_diff": relative_diff.item(),
+        "accumulated_n_tokens": accumulated_n_tokens.item(),
+    }
 
-def evaluate_kl_div(model: AutoTokenizer, dataset: Dataset, fwd_hooks=[], fwd_pre_hooks=[], batch_size: int = 8, n_batches: int = 128, verbose: bool = True):
+@torch.no_grad()
+def evaluate_kl_div(model: AutoTokenizer, batch_iterator, fwd_hooks=[], fwd_pre_hooks=[], n_batches: int = 128, verbose: bool = True):
     accumulated_kl_div = torch.tensor(0, dtype=torch.float64, device=model.device)
     accumulated_n_tokens = torch.tensor(0, dtype=torch.int64, device=model.device)
 
-    dl = DataLoader(
-        dataset,
-        batch_size=batch_size,
-        shuffle=False,
-    )
-    pbar = tqdm(dl, desc="KL Div Evaluation", disable=not verbose, total=n_batches if n_batches else len(dl))
+    pbar = tqdm(batch_iterator, desc="KL Div Evaluation", disable=not verbose)
 
     for batch_idx, batch in enumerate(pbar):
         inputs = {k: v.to(model.device) for k, v in batch.items() if k != "loss_mask"}
@@ -91,8 +106,8 @@ def evaluate_kl_div(model: AutoTokenizer, dataset: Dataset, fwd_hooks=[], fwd_pr
             intervention_logits = model(**inputs).logits
 
         # Compute KL divergence between baseline and SAE logits
-        kl_div_batch = calculate_kl_divergence(baseline_logits, intervention_logits)
-        
+        kl_div_batch = calculate_kl_divergence(baseline_logits, intervention_logits, reduction='none')
+
         # Apply loss mask to KL divergence
         masked_kl_div = kl_div_batch * loss_mask
         
@@ -100,7 +115,7 @@ def evaluate_kl_div(model: AutoTokenizer, dataset: Dataset, fwd_hooks=[], fwd_pr
         accumulated_kl_div += masked_kl_div.sum()
         accumulated_n_tokens += loss_mask.sum()
 
-        if batch_idx >= n_batches:
+        if n_batches and batch_idx + 1 >= n_batches:
             break
 
     # Compute average KL divergence
@@ -110,20 +125,19 @@ def evaluate_kl_div(model: AutoTokenizer, dataset: Dataset, fwd_hooks=[], fwd_pr
         print(f"Average KL Divergence: {avg_kl_div:.4f}")
         print(f"Number of Tokens: {accumulated_n_tokens.item():,}")
 
-    return avg_kl_div.item(), accumulated_n_tokens.item()
+    return {
+        "avg_kl_div": avg_kl_div.item(),
+        "accumulated_n_tokens": accumulated_n_tokens.item(),
+    }
 
-def evaluate_generations(model: AutoTokenizer, dataset: Dataset, tokenizer: AutoTokenizer, fwd_hooks=[], fwd_pre_hooks=[], batch_size: int = 8, n_batches: int = 128, generation_config: GenerationConfig = None, max_tokens: int = 32, do_sample: bool = False, verbose: bool = True):
+@torch.no_grad()
+def generate_completions(model: AutoTokenizer, batch_iterator, tokenizer: AutoTokenizer, fwd_hooks=[], fwd_pre_hooks=[], batch_size: int = 8, n_batches: int = 128, generation_config: GenerationConfig = None, max_tokens: int = 32, do_sample: bool = False, verbose: bool = True):
 
     if generation_config is None:
         generation_config = GenerationConfig(max_new_tokens=max_tokens, do_sample=do_sample)
-        generation_config.pad_token_id = model.pad_token_id
+        generation_config.pad_token_id = tokenizer.pad_token_id
 
-    dl = DataLoader(
-        dataset,
-        batch_size=batch_size,
-        shuffle=False,
-    )
-    pbar = tqdm(dl, desc="Generations", disable=not verbose, total=n_batches if n_batches else len(dl))
+    pbar = tqdm(batch_iterator, desc="Generations", disable=not verbose)
 
     prompts = []
     baseline_generations = []
@@ -144,8 +158,8 @@ def evaluate_generations(model: AutoTokenizer, dataset: Dataset, tokenizer: Auto
             generation_config=generation_config,
         )[:, seq_len:]
 
-        for generation_idx, generation in enumerate(baseline_generation_toks):
-            baseline_generations.append(model.tokenizer.decode(generation, skip_special_tokens=True).strip())
+        for generation in baseline_generation_toks:
+            baseline_generations.append(tokenizer.decode(generation, skip_special_tokens=True).strip())
 
         with add_hooks(module_forward_pre_hooks=fwd_pre_hooks, module_forward_hooks=fwd_hooks, **batch):
             generation_toks = model.generate(
@@ -154,8 +168,8 @@ def evaluate_generations(model: AutoTokenizer, dataset: Dataset, tokenizer: Auto
                 generation_config=generation_config,
             )[:, seq_len:]
 
-            for generation_idx, generation in enumerate(generation_toks):
-                hooked_sae_generations.append(model.tokenizer.decode(generation, skip_special_tokens=True).strip())
+            for generation in generation_toks:
+                hooked_sae_generations.append(tokenizer.decode(generation, skip_special_tokens=True).strip())
 
         if batch_idx >= n_batches:
             break
@@ -176,59 +190,3 @@ def evaluate_generations(model: AutoTokenizer, dataset: Dataset, tokenizer: Auto
     ]
 
     return results
-
-def parse_args():
-    pass
-
-def main():
-
-    model_path = "meta-llama/Meta-Llama-3-8B-Instruct"
-    n_batches = 16
-    batch_size = 4
-    max_seq_len = 64
-    n_proc = 1
-    dataset = "teknium/openhermes"
-
-    tokenizer = AutoTokenizer.from_pretrained(model_path)
-    tokenizer.padding_side = "left"
-    tokenizer.pad_token = tokenizer.eos_token
-
-    model = AutoModelForCausalLM.from_pretrained(
-        model_path,
-        device_map={"": "cuda"},
-        torch_dtype=torch.bfloat16,
-    )
-
-    # Load the SAE
-    sae = Sae.load_from_disk(f"../checkpoints/layer_12/").to('cuda')
-    sae_dict = { "layer_10": sae }
-
-    sae_fwd_hooks, saw_fwd_pre_hooks = get_sae_hooks(
-        model_block_modules=model.model.layers, sae_dict=sae_dict
-    )
-
-    # Load and tokenize dataset
-    dataset = load_dataset(dataset, split="train", trust_remote_code=True)
-    dataset = dataset.select(range(100))
-
-    tokenized = chunk_and_tokenize_chat_slow(
-        dataset,
-        tokenizer,
-        instruction_key="instruction",
-        output_key="output",
-        max_seq_len=max_seq_len,
-        remove_bos_token=False,
-        batch_size=batch_size,
-        n_proc=n_proc,
-    )
-
-    evaluate_kl_div(
-        model=model, dataset=tokenized, fwd_pre_hooks=saw_fwd_pre_hooks, fwd_hooks=sae_fwd_hooks, n_batches=n_batches, batch_size=batch_size
-    )
-
-if __name__ == '__main__':
-    main()
-
-
-
-

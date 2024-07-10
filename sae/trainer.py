@@ -12,10 +12,11 @@ from tqdm.auto import tqdm
 from transformers import get_linear_schedule_with_warmup, PreTrainedModel
 
 from sae.config import TrainConfig
-from sae.sae import Sae
+# from sae.sae import Sae
+from sae.sparse_autoencoder import Sae
 from sae.utils import geometric_median
 
-DEFAULT_CHECKPOINTS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "checkpoints")
+CHECKPOINTS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "checkpoints")
 
 def print_cuda_memory():
     """
@@ -55,9 +56,9 @@ class SaeTrainer:
         self.pretrained_saes = True if (cfg.load_from_checkpoint or cfg.load_from_hub_path) else False
 
         if cfg.load_from_checkpoint:
-            checkpoint_dir = self.cfg.run_name or DEFAULT_CHECKPOINTS_DIR
+            checkpoints_dir = os.path.join(CHECKPOINTS_DIR, self.cfg.run_name)
             self.saes = nn.ModuleList([
-                Sae.load_from_disk(os.path.join(checkpoint_dir, f"layer_{layer}")).to(device)
+                Sae.load_from_disk(os.path.join(checkpoints_dir, f"layer_{layer}")).to(device)
                 for layer in cfg.layers
             ])
             print(f"Loaded SAEs from disk for layers: {cfg.layers}")
@@ -342,8 +343,8 @@ class SaeTrainer:
                 assert isinstance(sae, Sae)
                 print(f"Saving layer {i}")
 
-                path = self.cfg.run_name or DEFAULT_CHECKPOINTS_DIR
-                sae.save_to_disk(os.path.join(f"{path}/layer_{i}"))
+                checkpoints_dir = os.path.join(CHECKPOINTS_DIR, self.cfg.run_name)
+                sae.save_to_disk(os.path.join(checkpoints_dir, f"layer_{i}"))
 
         # Barrier to ensure all ranks have saved before continuing
         if dist.is_initialized():

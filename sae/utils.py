@@ -5,7 +5,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from torch import Tensor
 from jaxtyping import Float, Int
 from torch.nn.functional import kl_div, log_softmax, softmax
-
+from typing import List, Union, Dict
 
 @torch.no_grad()
 def geometric_median(points: Tensor, max_iter: int = 100, tol: float = 1e-5):
@@ -35,46 +35,16 @@ def geometric_median(points: Tensor, max_iter: int = 100, tol: float = 1e-5):
 
     return guess
 
-# @torch.no_grad()
-# def compute_kl_over_dataset(model: AutoModelForCausalLM, tokenizer: AutoTokenizer, batch_iterator, n_batches=256, fwd_pre_hooks=[], fwd_hooks=[]):
-#     accumulated_kl_div = torch.tensor(0, dtype=torch.float64, device=model.device)
-#     accumulated_n_tokens = torch.tensor(0, dtype=torch.int64, device=model.device)
-
-#     batch_idx = 0
-#     for inputs, loss_mask in batch_iterator:
-#         inputs = inputs.to(model.device)
-#         loss_mask = loss_mask.to(model.device)
-
-#         input_ids = inputs["input_ids"]
-
-#         baseline_logits = model(**inputs).logits
-
-#         with add_hooks(module_forward_pre_hooks=fwd_pre_hooks, module_forward_hooks=fwd_hooks):
-#             intervention_logits = model(**inputs).logits
-
-#         # Compute KL divergence between baseline and SAE logits
-#         kl_div_batch = get_kl_divergence(baseline_logits, intervention_logits)
-        
-#         # Apply loss mask to KL divergence
-#         masked_kl_div = kl_div_batch * loss_mask
-        
-#         # Accumulate KL divergence and token count
-#         accumulated_kl_div += masked_kl_div.sum()
-#         accumulated_n_tokens += loss_mask.sum()
-
-#         batch_idx += 1
-#         if batch_idx >= n_batches:
-#             break
-
-#     # Compute average KL divergence
-#     avg_kl_div = accumulated_kl_div / accumulated_n_tokens
-
-#     return avg_kl_div.item(), accumulated_n_tokens.item()
-
-def calculate_kl_divergence(original_logits, sae_logits):
+def calculate_kl_divergence(original_logits, sae_logits, reduction='batchmean') -> Union[Float[Tensor, '1'], Float[Tensor, 'batch_size pos']]:
     original_probs = softmax(original_logits, dim=-1)
     sae_probs = softmax(sae_logits, dim=-1)
-    return kl_div(sae_probs.log(), original_probs, reduction='batchmean')
+
+    kl_divergence = kl_div(sae_probs.log(), original_probs, reduction=reduction)
+
+    if reduction == 'none':
+        kl_divergence = kl_divergence.sum(dim=-1)
+
+    return kl_divergence
 
 def calculate_ce_loss(logits: Float[Tensor, 'batch_size pos d_vocab'], input_ids: Int[Tensor, 'batch_size pos'], loss_mask: Int[Tensor, 'batch_size pos']) -> Tensor:
     log_probs = torch.nn.functional.log_softmax(logits, dim=-1)
@@ -93,3 +63,36 @@ def calculate_ce_loss(logits: Float[Tensor, 'batch_size pos d_vocab'], input_ids
     log_probs_for_labels = log_probs_for_labels * loss_mask.to(log_probs_for_labels.device)
 
     return -log_probs_for_labels.sum()
+
+CHAT_TEMPLATE_DICT = {
+    "Meta-Llama-3-8B-Instruct": """<|begin_of_text|><|start_header_id|>user<|end_header_id|>
+
+{instruction}<|eot_id|><|start_header_id|>assistant<|end_header_id|>
+
+"""
+}
+
+def apply_chat_template(tokenizer: AutoTokenizer, instruction: str, output: str, template_name: str, remove_bos_token: bool = False) -> str:
+    if remove_bos_token:
+        return CHAT_TEMPLATE_DICT[template_name].format(instruction=instruction).replace(tokenizer.bos_token, '') + output
+    else:
+        return CHAT_TEMPLATE_DICT[template_name].format(instruction=instruction) + output
+
+def format_prompts(tokenizer: AutoTokenizer, instructions: List[str], outputs: List[str], template_name: str = None, remove_bos_token: bool = False, max_output_len: int = None):
+    if max_output_len is not None:
+        outputs = [output[:max_output_len] for output in outputs]
+
+    if template_name and template_name in CHAT_TEMPLATE_DICT:
+        return [
+            apply_chat_template(tokenizer=tokenizer, instruction=instruction, output=output, template_name=template_name, remove_bos_token=remove_bos_token)
+            for instruction, output in zip(instructions, outputs)
+        ]
+
+    return [
+        f"Instruction: {instruction}\n\nOutput: {output}"
+        for instruction, output in zip(instructions, outputs)
+    ]
+
+###
+# Chat dataset iterator
+###

@@ -1,0 +1,167 @@
+[
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nWhat would be the best type of exercise for a person who has arthritis?<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "The best type of exercise for a person with arthritis depends on the type and severity of the condition, as well as the individual's overall health and fitness level.",
+    "hooked_sae_generation": "The best type of exercise for a person with arthritis depends on the type and severity of the condition, as well as the individual's overall health and fitness level."
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nCalculate the atomic mass for lithium.<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "The atomic mass of lithium is the weighted average of the masses of the three naturally occurring isotopes of lithium:\n\n* Lithium-6 (6.0151",
+    "hooked_sae_generation": "The atomic mass of lithium is the weighted average of the masses of the naturally occurring isotopes of lithium.\n\nLithium has two naturally occurring isotopes: lithium"
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nExplain the concept of Big Data and what it means for companies and customers.<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "Big Data refers to the large volume of structured and unstructured data that is generated from various sources, such as social media, sensors, IoT devices, and other",
+    "hooked_sae_generation": "Big Data refers to the large volume of structured and unstructured data that is generated from various sources, such as social media, sensors, IoT devices, and other"
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nHow many instruments does a symphony orchestra typically have?<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "A typical symphony orchestra usually consists of around 80 to 100 musicians, divided into four main sections:\n\n1. Strings:\n\t* First violins (",
+    "hooked_sae_generation": "A typical symphony orchestra usually consists of around 80 to 100 musicians, divided into four main sections:\n\n1. Strings:\n\t* First violins ("
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nSummarize the phrase: \"GPT is a natural language processing architecture.\"<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "The phrase \"GPT is a natural language processing architecture\" means that GPT (Generative Pre-trained Transformer) is a type of artificial intelligence (AI)",
+    "hooked_sae_generation": "The phrase \"GPT is a natural language processing (NLP) architecture\" means that GPT (Generative Pre-trained Transformer) is a type of artificial"
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nBrainstorm five questions that you could ask a customer to better understand their needs.<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "Here are five questions you could ask a customer to better understand their needs:\n\n1. **What are you hoping to achieve with our product/service?**\n\nThis question",
+    "hooked_sae_generation": "Here are five questions you could ask a customer to better understand their needs:\n\n1. **What are you hoping to achieve with our product/service?**\n\nThis question"
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nGenerate an example of a customer service conversation involving the keyword \"shipping\".<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "Here's an example of a customer service conversation involving the keyword \"shipping\":\n\n**Customer:** Hi, I'm trying to track my order and it says it's",
+    "hooked_sae_generation": "Here's an example of a customer service conversation involving the keyword \"shipping\":\n\n**Customer:** Hi, I'm having some trouble with my recent order. I ordered"
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nWhat is arithmetic mean and how to calculate it?<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "The arithmetic mean, also known as the average, is a measure of the central tendency of a set of numbers. It is calculated by adding up all the values",
+    "hooked_sae_generation": "The arithmetic mean, also known as the average, is a measure of the central tendency of a set of numbers. It is calculated by adding up all the values"
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nDescribe a method for detecting spam emails.<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "Detecting spam emails involves using a combination of techniques to identify and filter out unwanted emails. Here's a step-by-step method for detecting spam emails:\n\n1.",
+    "hooked_sae_generation": "Detecting spam emails involves using a combination of techniques to identify and filter out unwanted emails. Here's a step-by-step method for detecting spam emails:\n\n1."
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nDevelop a computer program that adds two numbers.<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "Here is a simple computer program in Python that adds two numbers:\n```\n# Get the two numbers from the user\nnum1 = float(input(\"Enter the",
+    "hooked_sae_generation": "Here is a simple program in Python that adds two numbers:\n```\n# Get the two numbers from the user\nnum1 = float(input(\"Enter the first"
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nHow can one reduce the number of distractions when studying?<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "Reducing distractions while studying is crucial to stay focused and retain information effectively. Here are some strategies to help you minimize distractions and stay on track:\n\n1. **",
+    "hooked_sae_generation": "Reducing distractions while studying is crucial to stay focused and retain information effectively. Here are some tips to help you minimize distractions and stay on track:\n\n1. **"
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nGenerate a list of interview questions for a software development role.<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "Here's a list of common interview questions for a software development role, categorized by topic:\n\n**Introduction and Background**\n\n1. Can you tell me a little about",
+    "hooked_sae_generation": "Here are some common interview questions for a software development role, categorized by topic:\n\n**Introduction and Background**\n\n1. Can you tell me a little about your background"
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nWhat are the components of a well-balanced meal?<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "A well-balanced meal typically includes a combination of different food groups and nutrients to provide the body with the necessary energy, nutrients, and satisfaction. The components of",
+    "hooked_sae_generation": "A well-balanced meal typically includes a combination of different food groups and nutrients to provide the body with the necessary energy, nutrients, and satisfaction. The following are"
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nGenerate a story about a family who adopts a pet.<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "The sun was shining brightly on the small town of Willow Creek as the Smith family pulled into their driveway. The kids, Timmy and Emma, were bouncing with",
+    "hooked_sae_generation": "It was a sunny Saturday morning when the Smith family decided to visit the local animal shelter. They had been thinking about adopting a pet for a while, and today"
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nGive the name and a brief description of a type of user interface.<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "Here is a type of user interface:\n\n**Name:** Graphical User Interface (GUI)\n\n**Description:** A Graphical User Interface (GUI) is a type",
+    "hooked_sae_generation": "Here is a type of user interface:\n\n**Name:** Material Design\n\n**Description:** Material Design is a design language developed by Google that emphasizes a visual language of"
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nGive an example of an appropriate reminder that could be set using a GPT model.<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "Here's an example of an appropriate reminder that could be set using a GPT model:\n\n**Reminder:** \"Don't forget to submit the Johnson report to the",
+    "hooked_sae_generation": "Here's an example of an appropriate reminder that could be set using a GPT model:\n\n**Reminder:** \"Don't forget to submit the Johnson report to the"
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nInvent a creative way to use virtual reality technology.<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "What a great question! Here's a creative way to use virtual reality technology:\n\n**\"Echoes of the Past\": A Virtual Reality Time Traveler's Journey",
+    "hooked_sae_generation": "What a great question! Here's a creative way to use virtual reality technology:\n\n**\"Echoes of the Past\": A Virtual Reality Time Capsule Experience**"
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nFind a creative way to promote a business.<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "Here's a creative way to promote a business:\n\n**\"Scavenger Hunt Challenge\"**\n\n**Business:** A local boutique clothing store, \"Trendy",
+    "hooked_sae_generation": "Here's a creative way to promote a business:\n\n**\"Scavenger Hunt Challenge\"**\n\n**Business:** A local boutique clothing store, \"Trendy"
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nRewrite the following sentence without using the word \"bad\": \"The food was bad.\"<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "Here is a rewritten version of the sentence:\n\n\"The food was unappetizing.\"\n\nThis sentence conveys the same meaning as the original sentence, but uses a",
+    "hooked_sae_generation": "Here is a rewritten version of the sentence:\n\n\"The food was unappetizing.\"\n\nOr, if you'd like another option:\n\n\"The food was subpar.\""
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nWrite a review for a car rental agency that frequently overcharged you.<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "**1/5 stars**\n\nI recently had the misfortune of renting a car from [Car Rental Agency] and was thoroughly disappointed with the experience. While the",
+    "hooked_sae_generation": "**1/5 stars**\n\nI'm extremely disappointed with my recent experience with XYZ Car Rental. I rented a car for a week-long trip and was shocked to"
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nWhat is the importance of nutrition in maintaining physical health?<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "Nutrition plays a crucial role in maintaining physical health by providing the body with the necessary nutrients, vitamins, and minerals to function properly. A well-balanced diet",
+    "hooked_sae_generation": "Nutrition plays a crucial role in maintaining physical health by providing the body with the necessary nutrients, vitamins, and minerals to function properly. A well-balanced diet"
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nExplain what kinds of benefits does AI have in the healthcare sector.<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "Artificial intelligence (AI) has numerous benefits in the healthcare sector, transforming the way healthcare professionals work, improving patient outcomes, and enhancing the overall healthcare experience.",
+    "hooked_sae_generation": "Artificial intelligence (AI) has numerous benefits in the healthcare sector, transforming the way healthcare professionals work, improving patient outcomes, and enhancing the overall healthcare experience."
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nWhat are the three most important skills that a computer programmer should have?<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "While there are many important skills for a computer programmer to have, here are three that are often considered essential:\n\n1. **Problem-solving skills**: A good programmer",
+    "hooked_sae_generation": "While there are many important skills for a computer programmer to have, here are three that are generally considered essential:\n\n1. **Problem-solving skills**: A good programmer"
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nGenerate a tag line for a cafe.<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "Here are a few tagline options for a cafe:\n\n1. \"Brewing up a sense of community, one cup at a time.\"\n2. \"",
+    "hooked_sae_generation": "Here are a few tagline options for a cafe:\n\n1. \"Brewing up a sense of community, one cup at a time.\"\n2. \""
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nHow can we inspire more people to become coding experts?<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "Inspiring more people to become coding experts requires a multi-faceted approach that addresses various factors, including education, accessibility, and community engagement. Here are some",
+    "hooked_sae_generation": "Inspiring more people to become coding experts requires a multi-faceted approach that addresses various factors, including education, accessibility, and community engagement. Here are some"
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nList three sites of historical importance in London.<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "Here are three sites of historical importance in London:\n\n1. The Tower of London: This historic fortress has served as a palace, prison, armory, and",
+    "hooked_sae_generation": "Here are three sites of historical importance in London:\n\n1. The Tower of London: This historic fortress has served as a palace, prison, armory, and"
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nCreate a character sketch of the protagonist of the book.<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "Let me introduce you to the protagonist of the book:\n\n**Name:** Emilia \"Mia\" Thompson\n\n**Age:** 25\n\n**Appearance:** Mia",
+    "hooked_sae_generation": "Let's create a character sketch of the protagonist of the book.\n\n**Name:** Emilia \"Mia\" Thompson\n\n**Age:** 25\n\n**Appearance"
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nSuggest three possible applications that could be built from GPT technology.<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "GPT (Generative Pre-trained Transformer) technology has numerous potential applications across various industries. Here are three possible applications that could be built using GPT:\n\n1",
+    "hooked_sae_generation": "Here are three possible applications that could be built using GPT (Generative Pre-trained Transformer) technology:\n\n1. **Personalized Chatbots for Customer Service**:"
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nWhat is the best way to take care of a rose plant?<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "Taking care of a rose plant requires attention to its watering, fertilization, pruning, and protection from pests and diseases. Here are some tips to help you keep",
+    "hooked_sae_generation": "Taking care of a rose plant requires attention to its watering, fertilization, pruning, and protection from pests and diseases. Here are some tips to help you keep"
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nGenerate a list of five items that would make a perfect picnic lunch<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "A perfect picnic lunch! Here are five items that would make a lovely and satisfying spread:\n\n1. **Fresh Fruit Salad**: A colorful mix of seasonal fruits such",
+    "hooked_sae_generation": "A picnic! Here are five items that would make a perfect picnic lunch:\n\n1. **Gourmet Sandwiches**: A variety of finger sandwiches with a mix of"
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nCome up with a word cloud based on the following theme: pollution.<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "Here is a word cloud based on the theme of pollution:\n\n**Word Cloud:**\n\n**Large Words:**\n\n* TOXIC\n* WASTE\n*",
+    "hooked_sae_generation": "Here is a word cloud based on the theme of pollution:\n\n**Word Cloud:**\n\n**Large Words:**\n\n* Pollution\n* Climate\n* Change\n*"
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nCompare two types of media outlets: print and digital.<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "Print and digital media outlets are two distinct forms of communication that have evolved over time to cater to the changing needs and preferences of audiences. Here's a comparison of",
+    "hooked_sae_generation": "Print and digital media outlets are two distinct forms of communication that have evolved over time to cater to the changing needs and preferences of audiences. Here's a comparison of"
+  },
+  {
+    "prompt": "<|begin_of_text|><|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\nTell the name of a famous mathematician.<|eot_id|><|start_header_id|>assistant<|end_header_id|>",
+    "baseline_generation": "One famous mathematician is Isaac Newton (1643-1727). He was an English mathematician and physicist who is widely recognized as one of the most influential",
+    "hooked_sae_generation": "One of the most famous mathematicians in history is Isaac Newton (1643-1727). He was an English mathematician, physicist, and astronomer who"
+  }
+]

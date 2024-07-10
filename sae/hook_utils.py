@@ -8,7 +8,7 @@ import einops
 import functools
 import torch
 
-from sae import Sae
+from sae.sparse_autoencoder import Sae
 
 @contextlib.contextmanager
 def add_hooks(
@@ -43,7 +43,7 @@ def add_hooks(
 
 
 def get_sae_fwd_pre_hook(sae: Sae, reconstruct_bos_token: bool = False):
-    def hook_fn(module, input, input_ids: Int[Tensor, "batch_size seq_len"]=None, attention_mask: Int[Tensor, "batch_size seq_len"]=None):
+    def hook_fn(module, input, input_ids: Int[Tensor, "batch_size seq_len"]=None, attention_mask: Int[Tensor, "batch_size seq_len"]=None, **kwargs):
         nonlocal sae, reconstruct_bos_token
 
         if isinstance(input, tuple):
@@ -61,8 +61,8 @@ def get_sae_fwd_pre_hook(sae: Sae, reconstruct_bos_token: bool = False):
         if not reconstruct_bos_token:
             if attention_mask is not None:
                 # We don't want to reconstruct at the first sequence token (<|begin_of_text|>)
-                bos_token_positions: Int[Tensor, 'batch_size'] = (attention_mask == 0).sum(dim=1)
-                reconstructed_activation[:, bos_token_positions, :] = activation[:, bos_token_positions, :]
+                bos_token_position: Int[Tensor, 'batch_size'] = (attention_mask == 0).sum(dim=1)
+                reconstructed_activation[:, bos_token_position, :] = activation[:, bos_token_position, :]
             elif seq_pos > 1:
                 # we assume that the first token is always the <|begin_of_text|> token in case
                 # the prompt contains multiple sequence positions (if seq_pos == 1 we're probably generating)
@@ -75,12 +75,12 @@ def get_sae_fwd_pre_hook(sae: Sae, reconstruct_bos_token: bool = False):
     return hook_fn
 
 
-def get_sae_hooks(model_block_modules: List[nn.Module], sae_dict: Dict[str, Sae], reconstruct_bos_token: bool = False):
+def get_sae_hooks(model_block_modules: List[torch.nn.Module], sae_dict: Dict[str, Sae], reconstruct_bos_token: bool = False):
     """
     Get the hooks for the SAE layers.
 
     args:
-        model_block_modules: List[nn.Module]: the model block modules to hook
+        model_block_modules: List[torch.nn.Module]: the model block modules to hook
         sae_dict: Dict[str, Sae]: the SAE layers. The keys in the dictionary have the format 'layer_<layer_number>'.
         reconstruct_bos_token: bool: whether to reconstruct the <|begin_of_text|> token
     """

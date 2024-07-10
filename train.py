@@ -17,12 +17,13 @@ from torch import Tensor
 import argparse
 
 from sae import Sae, SaeConfig, SaeTrainer, TrainConfig
-from sae.data import chunk_and_tokenize, chunk_and_tokenize_chat_slow, pack_conversations
+from sae.data import chunk_and_tokenize, chunk_and_tokenize_chat
 
 def parse_args():
     parser = argparse.ArgumentParser(description="SAE Training Script")
     
     # TrainConfig arguments
+    parser.add_argument("--run_name", type=str, required=True, help="Name of the wandb run")
     parser.add_argument("--batch_size", type=int, default=8, help="Batch size measured in sequences")
     parser.add_argument("--grad_acc_steps", type=int, default=1, help="Number of steps over which to accumulate gradients")
     parser.add_argument("--micro_acc_steps", type=int, default=1, help="Chunk the activations into this number of microbatches for SAE training")
@@ -35,10 +36,9 @@ def parse_args():
     parser.add_argument("--distribute_layers", action="store_true", help="Store a single copy of each SAE, instead of copying them across devices")
     parser.add_argument("--save_every", type=int, default=500, help="Save SAEs every `save_every` steps")
     parser.add_argument("--log_to_wandb", action="store_true", default=True, help="Whether to log to wandb")
-    parser.add_argument("--run_name", type=str, help="Name of the wandb run")
     parser.add_argument("--wandb_log_frequency", type=int, default=1, help="Frequency of logging to wandb")
     parser.add_argument("--load_from_checkpoint", action="store_true", default=False, help="Whether to load from the checkpoint directory")
-    parser.add_argument("--load_from_hub_path", type=str, default=None, help="Path to the huggingface repo")
+    parser.add_argument("--load_from_hub_path", type=str, default=None, help="Path to the huggingface repo", choices=["obalcells/sae-llama-3-8b-instruct", 'EleutherAI/sae-llama-3-8b-32x'])
     parser.add_argument("--n_batches", type=int, default=None, help="Number of training batches. If None, it is automatically chosen based on the number of tokens")
 
     # SaeConfig arguments
@@ -50,7 +50,8 @@ def parse_args():
     # Add new arguments for max_seq_len and model
     parser.add_argument("--max_seq_len", type=int, default=1024, help="Maximum sequence length for tokenization")
     parser.add_argument("--model", type=str, default="meta-llama/Meta-Llama-3-8B-Instruct", help="Name or path of the pre-trained model to use")
-    parser.add_argument("--dataset", type=str, default="teknium/openhermes", help="Name or path of the dataset to use")
+    parser.add_argument("--dataset", type=str, default="teknium/openhermes", help="Name or path of the dataset to use", choices=['togethercomputer/RedPajama-Data-1T-Sample', 'teknium/openhermes', 'tatsu-lab/alpaca', 'HuggingFaceFW/fineweb'])
+    parser.add_argument("--num_dataset_samples", type=int, default=None, help="Number of samples to use from the dataset")
 
     args = parser.parse_args()
 
@@ -91,26 +92,38 @@ def main():
     )
     
     # Load tokenizer and model
-    tokenizer = AutoTokenizer.from_pretrained(args.model)
-
+    tokenizer = AutoTokenizer.from_pretrained(args.model, trust_remote_code=True)
     model = AutoModelForCausalLM.from_pretrained(
         args.model,
         device_map={"": "cuda"},
         torch_dtype=torch.bfloat16,
+        trust_remote_code=True,
     )
 
     # Load and tokenize dataset
-    dataset = load_dataset(args.dataset, split="train", trust_remote_code=True)
-    dataset = dataset.select(range(10000))
-    tokenized = chunk_and_tokenize(
-        dataset,
-        tokenizer,
-        # instruction_key="instruction",
-        # output_key="output",
-        # max_seq_len=args.max_seq_len,
-        # remove_bos_token=False,
-        # batch_size=args.batch_size,
-    )
+    split = "train"
+    if args.num_dataset_samples is not None:
+        split = f"train[:{args.num_dataset_samples}]"
+    dataset = load_dataset(args.dataset, split=split, trust_remote_code=True)
+
+    dataset_type = 'chat' if args.dataset in ['teknium/openhermes', 'tatsu-lab/alpaca'] else 'text'
+
+    if dataset_type == 'chat':
+        tokenized = chunk_and_tokenize_chat(
+            dataset,
+            tokenizer,
+            instruction_key="instruction",
+            output_key="output",
+            max_seq_len=args.max_seq_len,
+            remove_bos_token=False,
+            batch_size=args.batch_size,
+        )
+    elif dataset_type == 'text':
+        tokenized = chunk_and_tokenize(
+            dataset,
+            tokenizer,
+            max_seq_len=args.max_seq_len,
+        )
     
     # Initialize trainer and start training
     trainer = SaeTrainer(train_config, tokenized, model)
